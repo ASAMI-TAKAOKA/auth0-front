@@ -1,9 +1,28 @@
 import { useAuth0 } from "@auth0/auth0-react";
 import { NextPage } from "next";
-import React from "react";
+import { useRouter } from "next/router";
+import React, { useEffect } from "react";
+// recoil
+import { useSetRecoilState } from "recoil";
+import tokenState from "../recoil/atoms/tokenState";
 
-const HomePage: NextPage = () => {
-  const { isAuthenticated, logout } = useAuth0();
+  const LoginPage: NextPage = () => {
+  const router = useRouter();
+  const { isAuthenticated, logout, getAccessTokenSilently } = useAuth0();
+  const setToken = useSetRecoilState(tokenState);
+
+  // ログイン完了後にトークンを取得しRecoilへ格納
+  useEffect(() => {
+    const getToken = async () => {
+      try {
+        const accessToken = await getAccessTokenSilently({});
+        setToken(accessToken);
+      } catch (e) {
+        console.log(e.message);
+      }
+    };
+    getToken();
+  }, []);
 
   return (
     <div>
@@ -14,6 +33,13 @@ const HomePage: NextPage = () => {
           <button onClick={() => logout({ returnTo: window.location.origin })}>
             ログアウト
           </button>
+          <button
+            onClick={() => {
+              router.push("/blog");
+            }}
+          >
+            記事投稿ページへ
+          </button>
         </>
       ) : (
         <p>ログアウトしています</p>
@@ -22,4 +48,4 @@ const HomePage: NextPage = () => {
   );
 };
 
-export default HomePage;
+export default LoginPage;
